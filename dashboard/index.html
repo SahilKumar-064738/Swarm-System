@@ -1,155 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DistCtrl — Distributed Task Manager</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <!-- ── Header ── -->
-  <header class="header">
-    <div class="header-left">
-      <div class="logo">
-        <span class="logo-icon">⬡</span>
-        <span class="logo-text">DIST<span class="accent">CTRL</span></span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swarm System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text">Swarm<span class="accent">System</span></span>
+        </div>
+        <div class="header-subtitle">Distributed Execution Monitor</div>
       </div>
-      <div class="header-subtitle">Distributed Execution Monitor</div>
+      <div class="header-right">
+        <div
+          class="status-dot"
+          id="connectionDot"
+          title="Connection status"
+        ></div>
+        <span class="status-label" id="connectionLabel">Connecting…</span>
+        <div class="last-update" id="lastUpdate">—</div>
+        <button class="btn btn-outline" id="refreshBtn">↺ Refresh</button>
+      </div>
+    </header>
+
+    <!-- ── Main Layout ── -->
+    <main class="layout">
+      <!-- ── LEFT COLUMN ── -->
+      <section class="col-left">
+        <!-- System Overview -->
+        <div class="panel" id="overviewPanel">
+          <div class="panel-header">
+            <span class="panel-title">System Overview</span>
+            <span class="panel-badge" id="overviewBadge">LIVE</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="totalAgents">—</div>
+              <div class="stat-label">Agents</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalJobs">—</div>
+              <div class="stat-label">Total Jobs</div>
+            </div>
+            <div class="stat-card stat-running">
+              <div class="stat-value" id="runningJobs">—</div>
+              <div class="stat-label">Running</div>
+            </div>
+            <div class="stat-card stat-ok">
+              <div class="stat-value" id="completedJobs">—</div>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card stat-fail">
+              <div class="stat-value" id="failedJobs">—</div>
+              <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card stat-active">
+              <div class="stat-value" id="activeTasks">—</div>
+              <div class="stat-label">Active Tasks</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agents Panel -->
+        <div class="panel" id="agentsPanel">
+          <div class="panel-header">
+            <span class="panel-title">Agents</span>
+            <span class="panel-count" id="agentCount">0</span>
+          </div>
+          <div id="agentsList" class="agents-list">
+            <div class="empty-state">No agents registered</div>
+          </div>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="panel panel-activity" id="activityPanel">
+          <div class="panel-header">
+            <span class="panel-title">Live Activity</span>
+            <button class="btn btn-ghost btn-xs" id="clearActivityBtn">
+              Clear
+            </button>
+          </div>
+          <div id="activityFeed" class="activity-feed">
+            <div class="empty-state">Waiting for events…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── RIGHT COLUMN ── -->
+      <section class="col-right">
+        <!-- Jobs Panel -->
+        <div class="panel" id="jobsPanel">
+          <div class="panel-header">
+            <span class="panel-title">Jobs</span>
+            <span class="panel-count" id="jobCount">0</span>
+          </div>
+          <div class="jobs-table-wrap">
+            <table class="jobs-table" id="jobsTable">
+              <thead>
+                <tr>
+                  <th>Job ID</th>
+                  <th>Status</th>
+                  <th>Tasks</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="jobsTableBody">
+                <tr>
+                  <td colspan="5" class="empty-state">No jobs yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Job Detail Panel (hidden by default) -->
+        <div class="panel panel-detail hidden" id="jobDetailPanel">
+          <div class="panel-header">
+            <span class="panel-title">Job Detail</span>
+            <button class="btn btn-ghost btn-xs" id="closeDetailBtn">
+              ✕ Close
+            </button>
+          </div>
+          <div id="jobDetailContent" class="job-detail-content"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── Submit Job Modal ── -->
+    <div class="modal-overlay hidden" id="submitModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">Submit New Job</span>
+          <button class="btn btn-ghost btn-xs" id="closeModalBtn">✕</button>
+        </div>
+        <div class="modal-body">
+          <label class="field-label">Python Script (.py)</label>
+          <input type="file" accept=".py" id="scriptFile" class="file-input" />
+          <label class="field-label">Data File (.txt / .csv)</label>
+          <input type="file" id="dataFile" class="file-input" />
+          <button class="btn btn-primary w-full" id="submitJobBtn">
+            Submit Job
+          </button>
+          <div class="submit-status hidden" id="submitStatus"></div>
+        </div>
+      </div>
     </div>
-    <div class="header-right">
-      <div class="status-dot" id="connectionDot" title="Connection status"></div>
-      <span class="status-label" id="connectionLabel">Connecting…</span>
-      <div class="last-update" id="lastUpdate">—</div>
-      <button class="btn btn-outline" id="refreshBtn">↺ Refresh</button>
-    </div>
-  </header>
 
-  <!-- ── Main Layout ── -->
-  <main class="layout">
+    <!-- ── FAB ── -->
+    <button class="fab" id="openModalBtn" title="Submit new job">+</button>
 
-    <!-- ── LEFT COLUMN ── -->
-    <section class="col-left">
-
-      <!-- System Overview -->
-      <div class="panel" id="overviewPanel">
-        <div class="panel-header">
-          <span class="panel-title">System Overview</span>
-          <span class="panel-badge" id="overviewBadge">LIVE</span>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value" id="totalAgents">—</div>
-            <div class="stat-label">Agents</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="totalJobs">—</div>
-            <div class="stat-label">Total Jobs</div>
-          </div>
-          <div class="stat-card stat-running">
-            <div class="stat-value" id="runningJobs">—</div>
-            <div class="stat-label">Running</div>
-          </div>
-          <div class="stat-card stat-ok">
-            <div class="stat-value" id="completedJobs">—</div>
-            <div class="stat-label">Completed</div>
-          </div>
-          <div class="stat-card stat-fail">
-            <div class="stat-value" id="failedJobs">—</div>
-            <div class="stat-label">Failed</div>
-          </div>
-          <div class="stat-card stat-active">
-            <div class="stat-value" id="activeTasks">—</div>
-            <div class="stat-label">Active Tasks</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Agents Panel -->
-      <div class="panel" id="agentsPanel">
-        <div class="panel-header">
-          <span class="panel-title">Agents</span>
-          <span class="panel-count" id="agentCount">0</span>
-        </div>
-        <div id="agentsList" class="agents-list">
-          <div class="empty-state">No agents registered</div>
-        </div>
-      </div>
-
-      <!-- Live Activity Feed -->
-      <div class="panel panel-activity" id="activityPanel">
-        <div class="panel-header">
-          <span class="panel-title">Live Activity</span>
-          <button class="btn btn-ghost btn-xs" id="clearActivityBtn">Clear</button>
-        </div>
-        <div id="activityFeed" class="activity-feed">
-          <div class="empty-state">Waiting for events…</div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ── RIGHT COLUMN ── -->
-    <section class="col-right">
-
-      <!-- Jobs Panel -->
-      <div class="panel" id="jobsPanel">
-        <div class="panel-header">
-          <span class="panel-title">Jobs</span>
-          <span class="panel-count" id="jobCount">0</span>
-        </div>
-        <div class="jobs-table-wrap">
-          <table class="jobs-table" id="jobsTable">
-            <thead>
-              <tr>
-                <th>Job ID</th>
-                <th>Status</th>
-                <th>Tasks</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="jobsTableBody">
-              <tr><td colspan="5" class="empty-state">No jobs yet</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Job Detail Panel (hidden by default) -->
-      <div class="panel panel-detail hidden" id="jobDetailPanel">
-        <div class="panel-header">
-          <span class="panel-title">Job Detail</span>
-          <button class="btn btn-ghost btn-xs" id="closeDetailBtn">✕ Close</button>
-        </div>
-        <div id="jobDetailContent" class="job-detail-content"></div>
-      </div>
-
-    </section>
-  </main>
-
-  <!-- ── Submit Job Modal ── -->
-  <div class="modal-overlay hidden" id="submitModal">
-    <div class="modal">
-      <div class="modal-header">
-        <span class="modal-title">Submit New Job</span>
-        <button class="btn btn-ghost btn-xs" id="closeModalBtn">✕</button>
-      </div>
-      <div class="modal-body">
-        <label class="field-label">Python Script (.py)</label>
-        <input type="file" accept=".py" id="scriptFile" class="file-input" />
-        <label class="field-label">Data File (.txt / .csv)</label>
-        <input type="file" id="dataFile" class="file-input" />
-        <button class="btn btn-primary w-full" id="submitJobBtn">Submit Job</button>
-        <div class="submit-status hidden" id="submitStatus"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── FAB ── -->
-  <button class="fab" id="openModalBtn" title="Submit new job">+</button>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
