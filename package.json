@@ -1,0 +1,19 @@
+{
+  "name": "distributed-parallel-system",
+  "version": "1.0.0",
+  "description": "Node.js distributed parallel execution system — controller + agents + Python scripts",
+  "main": "controller/index.js",
+  "scripts": {
+    "controller": "node controller/index.js",
+    "agent": "node agent/index.js",
+    "agent1": "AGENT_PORT=4001 AGENT_ID=agent-1 node agent/index.js",
+    "agent2": "AGENT_PORT=4002 AGENT_ID=agent-2 node agent/index.js",
+    "agent3": "AGENT_PORT=4003 AGENT_ID=agent-3 node agent/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^10.0.0"
+  }
+}
